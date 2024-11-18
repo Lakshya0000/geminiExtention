@@ -6,11 +6,18 @@ const port = 3000;
 const { inject } = require('@vercel/analytics');
 const path = require('path');
 
-app.use(cors( {
-    origin: 'chrome-extension://aledbjpbehjbabgkkklifglbaheecoin',
-    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-  }));
-app.use(express.json()); 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (origin && origin.startsWith('chrome-extension://')) {
+      callback(null, true); // Allow the request
+    } else {
+      callback(new Error('Not allowed by CORS')); // Deny the request
+    }
+  },
+  optionsSuccessStatus: 200, // For legacy browsers
+};
+
+app.use(cors(corsOptions));
 
 async function generateStory(apiKey, prompt) {
     const genAI = new GoogleGenerativeAI(apiKey);
